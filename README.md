@@ -1,5 +1,7 @@
 # nxnative tutorial — run a Switch game on your iPhone
 
+[English](README.md) | [中文](README.zh-CN.md)
+
 A step-by-step companion to [nxnative](https://github.com/seedds/nxnative), the project that runs Nintendo Switch games **natively** on Apple platforms: the game's own code executes on the Mac/iPhone, on a host that answers Horizon's system calls and implements the Switch's graphics APIs (NVN, Vulkan, NVIDIA's desktop OpenGL) on Metal.
 
 This walkthrough takes a game you own from NSP files to a playable app on your iPhone — including every pitfall hit on a real install (Mario Kart 8 Deluxe 4.0.1 → iPhone 17 Pro, iOS 27.2), and what fixed each one.
@@ -115,7 +117,9 @@ bash scripts/push_romfs.sh <UDID> <bundle ID> \
 
 ## The files in this folder
 
-- `scripts/build_ipa_from_nsp.py`, `scripts/push_romfs.sh` — the two nxnative scripts this tutorial drives, copied here **for reading**. They resolve paths relative to the nxnative tree, so run them from a clone of [nxnative](https://github.com/seedds/nxnative), not from this folder.
+- `README.md` / `README.zh-CN.md` — this tutorial (English / Chinese).
+- `scripts/build_ipa_from_nsp.py`, `scripts/push_romfs.sh` — the two nxnative scripts this tutorial drives, copied here **for reading** (MIT, see `scripts/LICENSE`). They resolve paths relative to the nxnative tree, so run them from a clone of [nxnative](https://github.com/seedds/nxnative), not from this folder.
+- `LICENSE` — this repository's MIT license.
 - `SKILL.md` — the same walkthrough as a Claude Code skill (below).
 
 ## Use this as a Claude Code skill
