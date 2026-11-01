@@ -123,7 +123,7 @@ bash scripts/push_romfs.sh <UDID> <bundle ID> \
 `SKILL.md` turns this tutorial into an agent skill: Claude runs the build, looks up the device and bundle ID, and drives the push.
 
 ```bash
-git clone https://github.com/<you>/nxnative-tutorial
+git clone https://github.com/leezhong/nxnative-tutorial
 ln -s "$(pwd)/nxnative-tutorial" ~/.claude/skills/nxnative-tutorial
 ```
 
