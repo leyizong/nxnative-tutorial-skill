@@ -2,7 +2,11 @@
 
 [中文](README.md) | [English](README.en.md)
 
-[nxnative](https://github.com/seedds/nxnative) 的实操配套教程。nxnative 让 Nintendo Switch 游戏**原生**运行在苹果平台上：游戏自己的代码在 Mac/iPhone 上执行，由一个宿主环境应答 Horizon 的系统调用，并在 Metal 上实现 Switch 的图形 API（NVN、Vulkan、NVIDIA 桌面版 OpenGL）。
+A step-by-step companion to [nxnative](https://github.com/seedds/nxnative), the project that runs Nintendo Switch games **natively** on Apple platforms: the game's own code executes on the Mac/iPhone, on a host that answers Horizon's system calls and implements the Switch's graphics APIs (NVN, Vulkan, NVIDIA's desktop OpenGL) on Metal.
+
+This walkthrough takes a game you own from NSP files to a playable app on your iPhone — including every pitfall hit on a real install (Mario Kart 8 Deluxe 4.0.1 → iPhone 17 Pro, iOS 27.2), and what fixed each one. **Switch 2 games** build and play too — from a `.nup` file or a game dump, no `prod.keys` — Mac-verified so far.
+
+**中文简介：**[nxnative](https://github.com/seedds/nxnative) 的实操配套教程。nxnative 让 Nintendo Switch 游戏**原生**运行在苹果平台上：游戏自己的代码在 Mac/iPhone 上执行，由一个宿主环境应答 Horizon 的系统调用，并在 Metal 上实现 Switch 的图形 API（NVN、Vulkan、NVIDIA 桌面版 OpenGL）。
 
 本教程带你把一款自己拥有的游戏从 NSP 文件变成 iPhone 上可玩的应用 —— 包含一次真实安装（马里奥赛车8豪华版 4.0.1 → iPhone 17 Pro，iOS 27.2）踩过的所有坑和对应解法。**Switch 2 游戏**也能构建和游玩 —— 从 `.nup` 文件或游戏 dump 构建，无需 `prod.keys` —— 目前已在 Mac 上验证（见下文[Switch 2 游戏](#switch-2-游戏nup-或-dump)）。
 
