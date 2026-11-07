@@ -1,11 +1,25 @@
 ---
 name: nxnative-tutorial
-description: Run a Switch game on the user's iPhone or Mac with the nxnative project — build the IPA (build_ipa_from_nsp.py --romfs separate), install it with Sideloadly, look up the real bundle ID with devicectl, push the RomFS image with push_romfs.sh. Trigger words: nxnative, compile switch game, install switch game on iPhone, port to iPhone, build IPA, re-sign, push romfs, 编译 switch 游戏, 把 switch 游戏装到手机, 移植到 iPhone, 推镜像, 重签.
+description: Run a Switch game on the user's iPhone or Mac with the nxnative project — build the IPA (build_ipa_from_nsp.py --romfs separate), install it with Sideloadly, look up the real bundle ID with devicectl, push the RomFS image with push_romfs.sh. Switch 2 games build from a .nup or a dump folder with no prod.keys (Mac-verified). Trigger words: nxnative, compile switch game, install switch game on iPhone, port to iPhone, build IPA, re-sign, push romfs, switch 2 game, nup, game dump, 编译 switch 游戏, 把 switch 游戏装到手机, 移植到 iPhone, 推镜像, 重签, switch 2 游戏, 游戏dump.
 ---
 
 # nxnative: Switch game → iPhone (build, sign, install)
 
-Compile one Switch game's NSPs into an IPA with the nxnative repository, install it on the user's iPhone with Sideloadly, and push the game files into the app's sandbox. Verified end-to-end 2026-11-01 on Mario Kart 8 Deluxe 4.0.1 → iPhone 17 Pro (iOS 27.2); works the same for every game in nxnative's `dm/games/README.md` games table.
+Compile one Switch game's NSPs into an IPA with the nxnative repository, install it on the user's iPhone with Sideloadly, and push the game files into the app's sandbox. Verified end-to-end 2026-11-01 on Mario Kart 8 Deluxe 4.0.1 → iPhone 17 Pro (iOS 27.2); works the same for every game in nxnative's `dm/games/README.md` games table. Switch 2 games: see the section at the end.
+
+## Switch 2 games (.nup or a dump)
+
+A Switch 2 title (program ID `0400…`) builds from **one `.nup` file or a folder of the game's files** (`exefs/` + `romfs/` = the base game) — **not NSPs, and no `-k`/`prod.keys` at all**:
+
+```bash
+python3 scripts/build_ipa_from_nsp.py <dump folder> --romfs separate -o <output>.ipa
+```
+
+- Everything downstream is the same script; the survey/provisional-profile flow covers unknown titles.
+- An **update dump** (e.g. Mario Kart World 1.8.0) packs from a profile *derived* from the base game's — its fixes are build-gated, so boot and play the update on the Mac first. Verified 2026-11-07: Mario Kart World 1.8.0 to a full race on an M1 Pro (first run anywhere; SDK 21.4.0, NVN2 API 231.39, Ampere/sm86 shaders, 7.47 GiB heap ask).
+- **All Switch 2 titles are Mac-verified only** — validate on the Mac before any iPhone attempt (iPhone memory limits are open).
+- Playing on the Mac: launch the host with `DM_WINDOW=1` **and `DM_AUDIO=1`** (Mac defaults to a silent sink); keyboard WASD/J-K-U-I/Q-E/arrows; save dir on internal APFS (`clonefile`).
+- Dumps travel as multi-part RARs, often RAR6 `v6:m1` which **7zz leaves as 0-byte files** — extract with RARLAB `unrar` 7.2+ and check sizes before building.
 
 **Repository**: a clone of nxnative (https://github.com/seedds/nxnative); run every command at its root.
 **Device**: the user's iPhone over USB; find the UDID once with `xcrun devicectl list devices`.
@@ -74,3 +88,6 @@ Success prints an identity line (`DMROMFSID1 … index=…`). The app only accep
 | devicectl device `unavailable` | phone locked → unlock |
 | Push: app not found | bundle ID got the team ID appended → `device info apps` |
 | devicectl install of Sideloadly's cache: no such file | cache purged on quit → use the separate IPA flow |
+| Switch 2 dump: 0-byte files after 7zz | RAR6 `v6:m1` → extract with RARLAB `unrar` 7.2+ |
+| Mac run: no sound | Mac host defaults silent → launch with `DM_AUDIO=1` |
+| Mac run: saves read-only (`clonefile` RED) | save dir on exFAT → put it on internal APFS |

@@ -4,13 +4,14 @@
 
 A step-by-step companion to [nxnative](https://github.com/seedds/nxnative), the project that runs Nintendo Switch games **natively** on Apple platforms: the game's own code executes on the Mac/iPhone, on a host that answers Horizon's system calls and implements the Switch's graphics APIs (NVN, Vulkan, NVIDIA's desktop OpenGL) on Metal.
 
-This walkthrough takes a game you own from NSP files to a playable app on your iPhone — including every pitfall hit on a real install (Mario Kart 8 Deluxe 4.0.1 → iPhone 17 Pro, iOS 27.2), and what fixed each one.
+This walkthrough takes a game you own from NSP files to a playable app on your iPhone — including every pitfall hit on a real install (Mario Kart 8 Deluxe 4.0.1 → iPhone 17 Pro, iOS 27.2), and what fixed each one. **Switch 2 games** build and play too — from a `.nup` file or a game dump, no `prod.keys` — Mac-verified so far ([Switch 2 games](#switch-2-games-nup-or-a-dump) below).
 
 > **Use your own games.** You need NSP files and `prod.keys` dumped from your own console. Nothing here distributes games, keys or firmware. Don't share your `prod.keys` — the build only reads it and never prints its values.
 
 ## Which games work?
 
 - **The [games table](https://github.com/seedds/nxnative#readme) in nxnative lists every validated title** — 90+ games, from *Breath of the Wild* and *Tears of the Kingdom* to Mario Kart 8 Deluxe, Pokémon, Metroid Dread, Silksong and Hades II. Each has a tested profile and a note describing what it needed.
+- **Switch 2 titles** (program IDs starting `0400…`) are in the same table: *Donkey Kong Bananza*, *Splatoon Raiders*, *Fire Emblem Fortune's Weave*, *Pokémon Pokopia*, *Hyrule Warriors: Age of Imprisonment*, *Mario Kart World*, *Mario Tennis Fever*. They are **Mac-verified** (reached real gameplay on a Mac); iPhone and iPad are untested for them.
 - **A game not in the table** still builds: the script surveys its binary (`<title ID>_survey/survey.md`), guesses a provisional profile, and produces a best-effort IPA **that may not boot** — bringing up a new title is real work (see nxnative's `docs/agents`).
 - The same flow also works **on the Mac alone**: `--platform mac-app` packs a double-clickable `.app`, no iPhone needed at all.
 
@@ -46,6 +47,25 @@ bash scripts/push_romfs.sh <UDID> <bundle ID> /path/to/<titleID>_build/extract/<
 ```
 
 A first build takes 2 minutes (*Metroid Dread*) to 10 (*Breath of the Wild*); a rebuild with unchanged inputs about 20 seconds. On the phone, budget the game's size twice-ish: the IPA (~1 GB) plus the game image (Mario Kart 8 Deluxe: 11.3 GB).
+
+## Switch 2 games (`.nup` or a dump)
+
+A Switch 2 game is built from **one NUP container** (a `.nup` file) or **a folder of the game's files** — not from NSPs. **Neither needs `prod.keys`**: a dump folder with `exefs/` and `romfs/` directly in it counts as the base game, and the same script accepts it as-is:
+
+```bash
+python3 scripts/build_ipa_from_nsp.py /path/to/game-dump-folder \
+  --romfs separate -o /path/to/Game.ipa      # no -k: a dump needs no keys
+```
+
+What differs from a Switch 1 build, and what to expect:
+
+- **Title IDs start `0400…`** (Switch 1 base games are `0100…`). An update dump (e.g. Mario Kart World 1.8.0, v917504) packs from a profile *derived* from the base game's — its fixes apply to the builds they were found on, so a Mac boot-and-play check of the update itself is the first thing to do.
+- **SDK 21.x and NVN2**: the device API asks 231.x, shaders are Ampere machine code (sm86, 128-bit instructions) translated by the same chain. A build of a big title is long — Mario Kart World: 11,603 shaders, ~34 min on an M1 Pro.
+- **Bigger memory**: Switch 2 heaps are large (Mario Kart World asks 7.47 GiB); 16 GB Macs handle it.
+- **Mac-first**: every Switch 2 title in the table was validated on the Mac — validate there before any iPhone attempt (iPhone memory limits are the open question). To play interactively: run the host with `DM_WINDOW=1`, and **`DM_AUDIO=1`** — on the Mac the host defaults to a *silent* sink (iOS defaults to sound). Keyboard: WASD stick, J/K/U/I = A/B/X/Y, Q/E = L/R, arrows = D-pad. Keep the **save folder on internal APFS** (save transactions use `clonefile`; an exFAT save dir mounts read-only).
+- **Dump archives**: Switch 2 dumps travel as multi-part RARs, and many are **RAR6 with the new compression method** — 7-Zip (7zz) silently leaves those entries 0 bytes ("Unsupported Method"). Use RARLAB's `unrar` 7.2+ to extract, and check a few files' sizes before building.
+
+*Verified on a Switch 2 title 2026-11-07: Mario Kart World 1.8.0 (v917504, SDK 21.4.0) from a dump folder → first boot to the title, menus, Grand Prix and a full race of Mario Bros. Circuit on an M1 Pro (1,283 draws a frame in-race, ~30–60 fps) — the first run of that update anywhere.*
 
 ## Step 1 — Build the IPA
 
@@ -114,6 +134,10 @@ bash scripts/push_romfs.sh <UDID> <bundle ID> \
 | `devicectl` device `unavailable` | phone locked → unlock |
 | `push_romfs.sh`: app not found | wrong bundle ID → look it up with `device info apps`; Sideloadly added your team ID |
 | `devicectl device install app` of Sideloadly's big IPA: file not found | Sideloadly purges its signing cache on quit — not a real path; install the small separate IPA instead |
+| Switch 2 dump: files come out 0 bytes with 7zz | RAR6's new compression method (`v6:m1`) — 7-Zip can't decode it → extract with RARLAB `unrar` 7.2+ |
+| Switch 2 dump: build/survey says files are missing | same RAR6 issue, `exefs/*` is always compressed → verify sizes after extraction |
+| Mac run: no sound | the Mac host defaults to a silent sink → launch with `DM_AUDIO=1` |
+| Mac run: saves rejected / read-only (`clonefile` `[RED]`) | save dir on exFAT → point it at internal APFS |
 
 ## The files in this folder
 
@@ -127,12 +151,12 @@ bash scripts/push_romfs.sh <UDID> <bundle ID> \
 `SKILL.md` turns this tutorial into an agent skill: Claude runs the build, looks up the device and bundle ID, and drives the push.
 
 ```bash
-git clone https://github.com/leezhong/nxnative-tutorial
-ln -s "$(pwd)/nxnative-tutorial" ~/.claude/skills/nxnative-tutorial
+git clone https://github.com/leezhong/nxnative-tutorial-skill
+ln -s "$(pwd)/nxnative-tutorial-skill" ~/.claude/skills/nxnative-tutorial
 ```
 
 Then in any session: "把马里奥赛车编译装到手机" / "build and install this Switch game on my iPhone".
 
 ---
 
-*Verified end-to-end 2026-11-01: Mario Kart 8 Deluxe 4.0.1 (base 1.0.0 US + update + DLC) → 1004 MB IPA + 11.3 GB image → iPhone 17 Pro, iOS 27.2.*
+*Verified end-to-end 2026-11-01: Mario Kart 8 Deluxe 4.0.1 (base 1.0.0 US + update + DLC) → 1004 MB IPA + 11.3 GB image → iPhone 17 Pro, iOS 27.2. Switch 2, 2026-11-07: Mario Kart World 1.8.0 from a dump folder → full race on an M1 Pro (Mac; iPhone untested).*
