@@ -16,7 +16,7 @@ python3 scripts/build_ipa_from_nsp.py <dump folder> --romfs separate -o <output>
 ```
 
 - Everything downstream is the same script; the survey/provisional-profile flow covers unknown titles.
-- An **update dump** (e.g. Mario Kart World 1.8.0) packs from a profile *derived* from the base game's — its fixes are build-gated, so boot and play the update on the Mac first. Verified 2026-11-07: Mario Kart World 1.8.0 to a full race on an M1 Pro (first run anywhere; SDK 21.4.0, NVN2 API 231.39, Ampere/sm86 shaders, 7.47 GiB heap ask).
+- An **update dump** (e.g. Mario Kart World 1.8.0) packs from a profile *derived* from the base game's — its fixes are build-gated, so boot and play the update on the Mac first. Verified 2026-11-07: Mario Kart World 1.8.0 to a full race on an M1 Pro (SDK 21.4.0, NVN2 API 231.39, Ampere/sm86 shaders, 7.47 GiB heap ask).
 - **All Switch 2 titles are Mac-verified only** — validate on the Mac before any iPhone attempt (iPhone memory limits are open).
 - Playing on the Mac: launch the host with `DM_WINDOW=1` **and `DM_AUDIO=1`** (Mac defaults to a silent sink); keyboard WASD/J-K-U-I/Q-E/arrows; save dir on internal APFS (`clonefile`).
 - Dumps travel as multi-part RARs, often RAR6 `v6:m1` which **7zz leaves as 0-byte files** — extract with RARLAB `unrar` 7.2+ and check sizes before building.

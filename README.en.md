@@ -8,6 +8,14 @@ This walkthrough takes a game you own from NSP files to a playable app on your i
 
 > **Use your own games.** You need NSP files and `prod.keys` dumped from your own console. Nothing here distributes games, keys or firmware. Don't share your `prod.keys` — the build only reads it and never prints its values.
 
+**Three real problems this guide solves:**
+
+- **A 9.9 GB IPA won't install** (the phone reports `PackageExtractionFailed`) → `--romfs separate` shrinks the IPA to about 1 GB, and the game image is pushed into the app sandbox separately. See steps 1 and 3.
+- **Shader compilation is about 10x slower on an external exFAT drive** → put the build working directory on the internal APFS disk. See the troubleshooting table.
+- **Sideloadly appends a team ID to the bundle ID on iOS 27** → look up the real ID with `devicectl` before pushing the image. See step 3.
+
+Mac only? Use `--platform mac-app`; no iPhone needed.
+
 ## Which games work?
 
 - **The [games table](https://github.com/seedds/nxnative#readme) in nxnative lists every validated title** — 90+ games, from *Breath of the Wild* and *Tears of the Kingdom* to Mario Kart 8 Deluxe, Pokémon, Metroid Dread, Silksong and Hades II. Each has a tested profile and a note describing what it needed.
@@ -66,11 +74,17 @@ What differs from a Switch 1 build, and what to expect:
 - **Controllers (Mac)**: every gamepad with a **complete control layout** is its own player (8BitDo Ultimate verified, = player 1); the keyboard always plays as player 1. **A single Joy-Con pairs over Bluetooth but is never used** — without the D-pad and L/ZL it isn't a complete layout, and the host logs `no extended gamepad profile: not used`. To play with Joy-Cons, connect **both** at once (macOS merges the pair into one full controller); two-player split-screen needs two complete-layout gamepads.
 - **Dump archives**: Switch 2 dumps travel as multi-part RARs, and many are **RAR6 with the new compression method** — 7-Zip (7zz) silently leaves those entries 0 bytes ("Unsupported Method"). Use RARLAB's `unrar` 7.2+ to extract, and check a few files' sizes before building.
 
-*Verified on a Switch 2 title 2026-11-07: Mario Kart World 1.8.0 (v917504, SDK 21.4.0) from a dump folder → first boot to the title, menus, Grand Prix and a full race of Mario Bros. Circuit on an M1 Pro (1,283 draws a frame in-race, ~30–60 fps) — the first run of that update anywhere.*
+*Verified on a Switch 2 title 2026-11-07: Mario Kart World 1.8.0 (v917504, SDK 21.4.0) from a dump folder → first boot to the title, menus, Grand Prix and a full race of Mario Bros. Circuit on an M1 Pro (1,283 draws a frame in-race, ~30–60 fps).*
 
 ![Mario Kart World two-player split-screen (Mac host, M1 Pro)](assets/mkw-2p-split-screen.png)
 
 *Two-player split-screen on Mario Bros. Circuit, Pauline / Yoshi (2026-11-07, Mac host window mode).*
+
+![Civilization VII main menu (Mac host)](assets/civ7-main-menu.jpg)
+
+![Civilization VII turn 1, Chang'an start (Mac host)](assets/civ7-in-game-turn1.jpg)
+
+*Civilization VII (v1.5.0) on the Mac host: the main menu, and turn 1 with the Chang'an start (2026-11-07).*
 
 ## Step 1 — Build the IPA
 
@@ -148,7 +162,7 @@ bash scripts/push_romfs.sh <UDID> <bundle ID> \
 ## The files in this folder
 
 - `README.md` (Chinese, default) / `README.en.md` (English) — this tutorial.
-- `assets/` — screenshots used in the READMEs (Mario Kart World split-screen, …).
+- `assets/` — screenshots used in the READMEs (Mario Kart World split-screen, Civilization VII menu and turn 1, …).
 - `scripts/build_ipa_from_nsp.py`, `scripts/push_romfs.sh` — the two nxnative scripts this tutorial drives, copied here **for reading** (MIT, see `scripts/LICENSE`). They resolve paths relative to the nxnative tree, so run them from a clone of [nxnative](https://github.com/seedds/nxnative), not from this folder.
 - `LICENSE` — this repository's MIT license.
 - `SKILL.md` — the same walkthrough as a Claude Code skill (below).
@@ -158,7 +172,7 @@ bash scripts/push_romfs.sh <UDID> <bundle ID> \
 `SKILL.md` turns this tutorial into an agent skill: Claude runs the build, looks up the device and bundle ID, and drives the push.
 
 ```bash
-git clone https://github.com/leezhong/nxnative-tutorial-skill
+git clone https://github.com/leyizong/nxnative-tutorial-skill
 ln -s "$(pwd)/nxnative-tutorial-skill" ~/.claude/skills/nxnative-tutorial
 ```
 

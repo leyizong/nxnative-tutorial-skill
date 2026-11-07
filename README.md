@@ -8,6 +8,14 @@
 
 > **只用自己的游戏。**你需要从自己主机 dump 出来的 NSP 文件和 `prod.keys`。本教程不分发游戏、密钥或固件。不要分享你的 `prod.keys` —— 构建过程只读取它，永不打印其内容。
 
+**这份教程解决的三个真实问题：**
+
+- **9.9 GB 的 IPA 装不上**（手机报 `PackageExtractionFailed`）→ `--romfs separate` 把 IPA 缩到约 1 GB，游戏镜像单独推进应用沙盒。见第 1 步和第 3 步。
+- **外置 exFAT 硬盘上着色器编译慢约 10 倍** → 把构建工作目录放在内置 APFS 盘。见排查表。
+- **Sideloadly 在 iOS 27 上给 bundle ID 追加团队 ID** → 推镜像前用 `devicectl` 查真实 ID。见第 3 步。
+
+只想在 Mac 上玩？用 `--platform mac-app`，不需要 iPhone。
+
 **English:** A step-by-step companion to [nxnative](https://github.com/seedds/nxnative), the project that runs Nintendo Switch games **natively** on Apple platforms: the game's own code executes on the Mac/iPhone, on a host that answers Horizon's system calls and implements the Switch's graphics APIs (NVN, Vulkan, NVIDIA's desktop OpenGL) on Metal.
 
 This walkthrough takes a game you own from NSP files to a playable app on your iPhone — including every pitfall hit on a real install (Mario Kart 8 Deluxe 4.0.1 → iPhone 17 Pro, iOS 27.2), and what fixed each one. **Switch 2 games** build and play too — from a `.nup` file or a game dump, no `prod.keys` — Mac-verified so far. Full English version: [README.en.md](README.en.md).
@@ -70,11 +78,17 @@ python3 scripts/build_ipa_from_nsp.py /path/to/game-dump-folder \
 - **手柄（Mac）**：每个具备**完整键位布局**的 HID 手柄各算一个独立玩家（8BitDo Ultimate 已验证，= player 1），键盘固定并入 1P。**单个 Joy-Con 能连上蓝牙但不会被使用** —— 缺十字键/L/ZL，不构成完整布局，宿主日志会写 `no extended gamepad profile: not used`。要用 Joy-Con 需左右**同时**连接（macOS 会把一对合并成一个完整手柄）；双人分屏需要两个完整布局手柄。
 - **dump 压缩包**：Switch 2 dump 常以多卷 RAR 传播，其中不少是**新压缩方法的 RAR6** —— 7-Zip（7zz）会把这些条目悄悄解成 0 字节（"Unsupported Method"）。用 RARLAB 的 `unrar` 7.2+ 解压，构建前抽查几个文件大小。
 
-*Switch 2 游戏验证，2026-11-07：马里奥赛车 世界 1.8.0（v917504，SDK 21.4.0）从 dump 文件夹构建 → M1 Pro 上首次启动到标题画面、菜单、Grand Prix 并完整跑了一场马里奥兄弟赛道（比赛每帧 1,283 次 draw，约 30–60 fps）—— 这是该更新版本在全球范围内的首次运行。*
+*Switch 2 游戏验证，2026-11-07：马里奥赛车 世界 1.8.0（v917504，SDK 21.4.0）从 dump 文件夹构建 → M1 Pro 上首次启动到标题画面、菜单、Grand Prix 并完整跑了一场马里奥兄弟赛道（比赛每帧 1,283 次 draw，约 30–60 fps）。*
 
 ![马里奥赛车 世界双人分屏（Mac 宿主，M1 Pro）](assets/mkw-2p-split-screen.png)
 
 *双人分屏：马里奥兄弟赛道，Pauline / Yoshi（2026-11-07，Mac 宿主窗口模式）。*
+
+![文明 7 主菜单（Mac 宿主）](assets/civ7-main-menu.jpg)
+
+![文明 7 回合 1，长安开局（Mac 宿主）](assets/civ7-in-game-turn1.jpg)
+
+*文明 7（v1.5.0）在 Mac 宿主上运行：主菜单，以及回合 1 长安开局（2026-11-07）。*
 
 ## 第 1 步 —— 构建 IPA
 
@@ -152,7 +166,7 @@ bash scripts/push_romfs.sh <UDID> <bundle ID> \
 ## 本文件夹内的文件
 
 - `README.md`（中文，默认）/ `README.en.md`（English）—— 本教程
-- `assets/` —— README 使用的截图（马里奥赛车 世界双人分屏等）
+- `assets/` —— README 使用的截图（马里奥赛车 世界双人分屏、文明 7 主菜单与回合 1 等）
 - `SKILL.md` —— 同一流程的 Claude Code skill（见下）
 - `scripts/build_ipa_from_nsp.py`、`scripts/push_romfs.sh` —— 本教程驱动的两个 nxnative 脚本，复制到此处**仅供阅读**（MIT 许可，见 `scripts/LICENSE`）。它们按 nxnative 目录树解析相对路径，请从 [nxnative](https://github.com/seedds/nxnative) 的克隆中运行，不要在本文件夹里跑。
 - `LICENSE` —— 本仓库的 MIT 许可证。
@@ -162,7 +176,7 @@ bash scripts/push_romfs.sh <UDID> <bundle ID> \
 `SKILL.md` 把本教程变成一个 agent skill：Claude 会执行构建、查询设备和 bundle ID、驱动推送。
 
 ```bash
-git clone https://github.com/leezhong/nxnative-tutorial-skill
+git clone https://github.com/leyizong/nxnative-tutorial-skill
 ln -s "$(pwd)/nxnative-tutorial-skill" ~/.claude/skills/nxnative-tutorial
 ```
 
