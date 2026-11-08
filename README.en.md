@@ -86,6 +86,8 @@ What differs from a Switch 1 build, and what to expect:
 
 *Civilization VII (v1.5.0) on the Mac host: the main menu, and turn 1 with the Chang'an start (2026-11-07).*
 
+2026-11-08 update: [Highlight/placement investigation and CFG fix (Chinese)](civ7-highlight-fix.zh-CN.md), with code and screenshots. Map hover and Granary placement outlines are verified; the specific city-purchase screen remains unverified.
+
 ## Step 1 — Build the IPA
 
 ```bash

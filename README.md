@@ -90,6 +90,8 @@ python3 scripts/build_ipa_from_nsp.py /path/to/game-dump-folder \
 
 *文明 7（v1.5.0）在 Mac 宿主上运行：主菜单，以及回合 1 长安开局（2026-11-07）。*
 
+2026-11-08 更新：[地块高亮与建筑放置缺失的最终根因、修复代码和验证截图](civ7-highlight-fix.zh-CN.md)。地图与粮仓放置选中框已实测恢复；城市购地具体场景待核对。
+
 ## 第 1 步 —— 构建 IPA
 
 ```bash
